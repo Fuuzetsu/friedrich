@@ -122,7 +122,7 @@ fn fit_amplitude_var<S: Storage<f64, Dynamic, U1>>(training_outputs: &SVector<S>
 ///
 /// Note that it will be more efficient to implement the final kernel manually yourself.
 /// However this provides an easy mechanism to test different combinations.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 #[cfg_attr(
     feature = "friedrich_serde",
     derive(serde::Deserialize, serde::Serialize)
@@ -212,7 +212,7 @@ impl<T: Kernel, U: Kernel> Default for KernelSum<T, U> {
 ///
 /// Note that it will be more efficient to implement the final kernel manually yourself.
 /// However this provides an easy mechanism to test different combinations.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 #[cfg_attr(
     feature = "friedrich_serde",
     derive(serde::Deserialize, serde::Serialize)
@@ -304,7 +304,7 @@ impl<T: Kernel, U: Kernel> Default for KernelProd<T, U> {
 }
 
 /// A wrapper tuple struct used for kernel arithmetic
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 #[cfg_attr(
     feature = "friedrich_serde",
     derive(serde::Deserialize, serde::Serialize)
@@ -1059,10 +1059,7 @@ pub struct RationalQuadratic {
 impl RationalQuadratic {
     /// Constructs a new Rational Quadratic Kernel.
     pub fn new(alpha: f64, ls: f64) -> RationalQuadratic {
-        RationalQuadratic {
-            alpha,
-            ls,
-        }
+        RationalQuadratic { alpha, ls }
     }
 }
 
