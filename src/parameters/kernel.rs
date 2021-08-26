@@ -352,7 +352,7 @@ pub struct Linear {
 impl Linear {
     /// Constructs a new Linear Kernel.
     pub fn new(c: f64) -> Linear {
-        Linear { c: c }
+        Linear { c }
     }
 }
 
@@ -376,7 +376,7 @@ impl Kernel for Linear {
         x1: &SRowVector<S1>,
         x2: &SRowVector<S2>,
     ) -> f64 {
-        x1.dot(&x2) + self.c
+        x1.dot(x2) + self.c
     }
 
     fn gradient<S1: Storage<f64, U1, Dynamic>, S2: Storage<f64, U1, Dynamic>>(
@@ -419,11 +419,7 @@ pub struct Polynomial {
 impl Polynomial {
     /// Constructs a new Polynomial Kernel.
     pub fn new(alpha: f64, c: f64, d: f64) -> Polynomial {
-        Polynomial {
-            alpha: alpha,
-            c: c,
-            d: d,
-        }
+        Polynomial { alpha, c, d }
     }
 }
 
@@ -453,7 +449,7 @@ impl Kernel for Polynomial {
         x1: &SRowVector<S1>,
         x2: &SRowVector<S2>,
     ) -> f64 {
-        (self.alpha * x1.dot(&x2) + self.c).powf(self.d)
+        (self.alpha * x1.dot(x2) + self.c).powf(self.d)
     }
 
     fn gradient<S1: Storage<f64, U1, Dynamic>, S2: Storage<f64, U1, Dynamic>>(
@@ -461,7 +457,7 @@ impl Kernel for Polynomial {
         x1: &SRowVector<S1>,
         x2: &SRowVector<S2>,
     ) -> Vec<f64> {
-        let x = x1.dot(&x2);
+        let x = x1.dot(x2);
         let inner_term = self.alpha * x + self.c;
 
         let grad_c = self.d * inner_term.powf(self.d - 1.);
@@ -515,7 +511,7 @@ pub struct SquaredExp {
 impl SquaredExp {
     /// Construct a new squared exponential kernel (gaussian).
     pub fn new(ls: f64, ampl: f64) -> SquaredExp {
-        SquaredExp { ls: ls, ampl: ampl }
+        SquaredExp { ls, ampl }
     }
 }
 
@@ -616,7 +612,7 @@ pub struct Exponential {
 impl Exponential {
     /// Construct a new squared exponential kernel.
     pub fn new(ls: f64, ampl: f64) -> Exponential {
-        Exponential { ls: ls, ampl: ampl }
+        Exponential { ls, ampl }
     }
 }
 
@@ -717,7 +713,7 @@ pub struct Matern1 {
 impl Matern1 {
     /// Construct a new matèrn1 kernel.
     pub fn new(ls: f64, ampl: f64) -> Matern1 {
-        Matern1 { ls: ls, ampl: ampl }
+        Matern1 { ls, ampl }
     }
 }
 
@@ -820,7 +816,7 @@ pub struct Matern2 {
 impl Matern2 {
     /// Construct a new matèrn2 kernel.
     pub fn new(ls: f64, ampl: f64) -> Matern2 {
-        Matern2 { ls: ls, ampl: ampl }
+        Matern2 { ls, ampl }
     }
 }
 
@@ -927,7 +923,7 @@ pub struct HyperTan {
 impl HyperTan {
     /// Constructs a new Hyperbolic Tangent Kernel.
     pub fn new(alpha: f64, c: f64) -> HyperTan {
-        HyperTan { alpha: alpha, c: c }
+        HyperTan { alpha, c }
     }
 }
 
@@ -955,7 +951,7 @@ impl Kernel for HyperTan {
         x1: &SRowVector<S1>,
         x2: &SRowVector<S2>,
     ) -> f64 {
-        (self.alpha * x1.dot(&x2) + self.c).tanh()
+        (self.alpha * x1.dot(x2) + self.c).tanh()
     }
 
     fn gradient<S1: Storage<f64, U1, Dynamic>, S2: Storage<f64, U1, Dynamic>>(
@@ -963,7 +959,7 @@ impl Kernel for HyperTan {
         x1: &SRowVector<S1>,
         x2: &SRowVector<S2>,
     ) -> Vec<f64> {
-        let x = x1.dot(&x2);
+        let x = x1.dot(x2);
         let grad_c = 1. / (self.alpha * x + self.c).cosh().powi(2);
         let grad_alpha = x * grad_c;
 
@@ -998,7 +994,7 @@ pub struct Multiquadric {
 impl Multiquadric {
     /// Constructs a new Multiquadric Kernel.
     pub fn new(c: f64) -> Multiquadric {
-        Multiquadric { c: c }
+        Multiquadric { c }
     }
 }
 
@@ -1064,8 +1060,8 @@ impl RationalQuadratic {
     /// Constructs a new Rational Quadratic Kernel.
     pub fn new(alpha: f64, ls: f64) -> RationalQuadratic {
         RationalQuadratic {
-            alpha: alpha,
-            ls: ls,
+            alpha,
+            ls,
         }
     }
 }
