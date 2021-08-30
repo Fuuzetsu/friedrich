@@ -7,9 +7,7 @@ mod extendable_matrix;
 pub use extendable_matrix::{EMatrix, EVector};
 
 use crate::parameters::kernel::Kernel;
-use nalgebra::{
-    storage::Storage, Cholesky, ComplexField, DMatrix, DVector, Dynamic, Matrix, SliceStorage, U1,
-};
+use nalgebra::{storage::Storage, Cholesky, DMatrix, DVector, Dynamic, Matrix, SliceStorage, U1};
 
 //-----------------------------------------------------------------------------
 // ARBITRARY STORAGE TYPES
@@ -67,10 +65,6 @@ pub fn make_cholesky_cov_matrix<S: Storage<f64, Dynamic, Dynamic>, K: Kernel>(
     diagonal_noise: f64,
     cholesky_epsilon: Option<f64>,
 ) -> Cholesky<f64, Dynamic> {
-    // let make_covmatrix = || {
-
-    // };
-
     // empty covariance matrix
     // TODO it would be faster to start with an an uninitialized matrix but it would require unsafe
     let mut covmatix = DMatrix::<f64>::from_element(inputs.nrows(), inputs.nrows(), std::f64::NAN);
@@ -86,59 +80,10 @@ pub fn make_cholesky_cov_matrix<S: Storage<f64, Dynamic, Dynamic>, K: Kernel>(
     }
 
     if let Some(cholesky_epsilon) = cholesky_epsilon {
-        // If we fail even with explicit epsilon, report it back. The user may
-        // have set it too low.
-        cholesky_with_epsilon(covmatix, cholesky_epsilon).unwrap_or_else(|| {
-            panic!(
-                "Cholesky decomposition failed, even with epsilon of {}",
-                cholesky_epsilon,
-            )
-        })
+        Cholesky::new_with_substitute_unchecked(covmatix, cholesky_epsilon)
     } else {
         covmatix.cholesky().expect("Cholesky decomposition failed!")
     }
-}
-
-/// Similar to
-/// https://docs.rs/nalgebra/0.29.0/src/nalgebra/linalg/cholesky.rs.html#166-201
-/// but where it would normally fail, the given epsilon value is inserted
-/// instead.
-fn cholesky_with_epsilon(mut matrix: DMatrix<f64>, epsilon: f64) -> Option<Cholesky<f64, Dynamic>> {
-    assert!(matrix.is_square(), "The input matrix must be square.");
-
-    let n = matrix.nrows();
-
-    for j in 0..n {
-        for k in 0..j {
-            let factor = unsafe { -matrix.get_unchecked((j, k)) };
-
-            let (mut col_j, col_k) = matrix.columns_range_pair_mut(j, k);
-            let mut col_j = col_j.rows_range_mut(j..);
-            let col_k = col_k.rows_range(j..);
-
-            col_j.axpy(factor.conjugate(), &col_k, 1.0);
-        }
-
-        let denom = unsafe { matrix.get_unchecked((j, j)) }.try_sqrt();
-        // If we end up with a value that's 0 (or very close) or negative or a
-        // NaN (maybe the original value was very tiny) then replace the value
-        // with user epsilon instead.
-        let denom = match denom {
-            // Ensure that even if we have sqrt, it's not 0 (or extremely
-            // close).
-            Some(denom) if denom > f64::EPSILON => denom,
-            _ => epsilon,
-        };
-
-        unsafe {
-            *matrix.get_unchecked_mut((j, j)) = denom;
-        }
-
-        let mut col = matrix.slice_range_mut(j + 1.., j);
-        col /= denom;
-    }
-
-    Some(Cholesky { chol: matrix })
 }
 
 /// add rows to the covariance matrix by updating its Cholesky decomposition in place

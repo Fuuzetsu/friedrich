@@ -20,8 +20,7 @@ friedrich_ndarray = ["ndarray"]
 friedrich_serde = ["serde", "nalgebra/serde-serialize"]
 
 [dependencies]
-# nalgebra = "0.29"
-nalgebra = { path = "/tmp/nalgebra" }
+nalgebra = { git = "https://github.com/Fuuzetsu/nalgebra", rev = "8ddb2da863b2ebefb23f04d3c85a999d5882ab56" }
 rand = "0.8"
 rand_distr = "0.4"
 ndarray = { version = "0.15", optional = true }
