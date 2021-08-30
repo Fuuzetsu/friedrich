@@ -39,6 +39,7 @@ pub struct GaussianProcessBuilder<KernelType: Kernel, PriorType: Prior> {
     kernel: KernelType,
     /// amplitude of the noise of the data
     noise: f64,
+    cholesky_epsilon: Option<f64>,
     /// type of fit to be applied
     should_fit_kernel: bool,
     should_fit_prior: bool,
@@ -69,10 +70,15 @@ impl<KernelType: Kernel, PriorType: Prior> GaussianProcessBuilder<KernelType, Pr
         let should_fit_prior = false;
         let max_iter = 100;
         let convergence_fraction = 0.05;
+        // As we have noise by default, don't set the Cholesky epsilon to
+        // anything, just usual diagonal noise may be enough. It can easily
+        // happen that it is not however.
+        let cholesky_epsilon = None;
         GaussianProcessBuilder {
             prior,
             kernel,
             noise,
+            cholesky_epsilon,
             should_fit_kernel,
             should_fit_prior,
             max_iter,
@@ -95,6 +101,7 @@ impl<KernelType: Kernel, PriorType: Prior> GaussianProcessBuilder<KernelType, Pr
             prior,
             kernel: self.kernel,
             noise: self.noise,
+            cholesky_epsilon: self.cholesky_epsilon,
             should_fit_kernel: self.should_fit_kernel,
             should_fit_prior: self.should_fit_prior,
             max_iter: self.max_iter,
@@ -125,12 +132,23 @@ impl<KernelType: Kernel, PriorType: Prior> GaussianProcessBuilder<KernelType, Pr
             prior: self.prior,
             kernel,
             noise: self.noise,
+            cholesky_epsilon: self.cholesky_epsilon,
             should_fit_kernel: self.should_fit_kernel,
             should_fit_prior: self.should_fit_prior,
             max_iter: self.max_iter,
             convergence_fraction: self.convergence_fraction,
             training_inputs: self.training_inputs,
             training_outputs: self.training_outputs,
+        }
+    }
+
+    /// Force values during Cholesky decomposition to be at least the given epsilon.
+    ///
+    // See <https://github.com/nestordemeure/friedrich/issues/43> for details.
+    pub fn set_cholesky_epsilon(self, cholesky_epsilon: Option<f64>) -> Self {
+        GaussianProcessBuilder {
+            cholesky_epsilon,
+            ..self
         }
     }
 
@@ -181,6 +199,7 @@ impl<KernelType: Kernel, PriorType: Prior> GaussianProcessBuilder<KernelType, Pr
             self.prior,
             self.kernel,
             self.noise,
+            self.cholesky_epsilon,
             self.training_inputs,
             self.training_outputs,
         );

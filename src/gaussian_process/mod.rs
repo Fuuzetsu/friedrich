@@ -64,6 +64,12 @@ pub struct GaussianProcess<KernelType: Kernel, PriorType: Prior> {
     pub kernel: KernelType,
     /// amplitude of the noise of the data as provided by the user or deduced by the optimizer
     pub noise: f64,
+    /// During Cholesky decomposition, ensure that the matrix values are at
+    /// least the given epsilon. This is especially useful for noiseless
+    /// sampling processes where very small covariance can result in numerical
+    /// errors causing Cholesky to fail. See
+    /// <https://github.com/nestordemeure/friedrich/issues/43> for details.
+    pub cholesky_epsilon: Option<f64>,
     /// data used for fit
     training_inputs: EMatrix,
     training_outputs: EVector,
@@ -138,6 +144,7 @@ impl<KernelType: Kernel, PriorType: Prior> GaussianProcess<KernelType, PriorType
         prior: PriorType,
         kernel: KernelType,
         noise: f64,
+        cholesky_epsilon: Option<f64>,
         training_inputs: T,
         training_outputs: T::InVector,
     ) -> Self {
@@ -154,12 +161,17 @@ impl<KernelType: Kernel, PriorType: Prior> GaussianProcess<KernelType, PriorType
         let training_outputs =
             EVector::new(training_outputs - prior.prior(&training_inputs.as_matrix()));
         // computes cholesky decomposition
-        let covmat_cholesky =
-            make_cholesky_cov_matrix(&training_inputs.as_matrix(), &kernel, noise);
+        let covmat_cholesky = make_cholesky_cov_matrix(
+            &training_inputs.as_matrix(),
+            &kernel,
+            noise,
+            cholesky_epsilon,
+        );
         GaussianProcess {
             prior,
             kernel,
             noise,
+            cholesky_epsilon,
             training_inputs,
             training_outputs,
             covmat_cholesky,
@@ -429,6 +441,7 @@ impl<KernelType: Kernel, PriorType: Prior> GaussianProcess<KernelType, PriorType
                     &self.training_inputs.as_matrix(),
                     &self.kernel,
                     self.noise,
+                    self.cholesky_epsilon,
                 );
             }
         }

@@ -118,6 +118,7 @@ impl<KernelType: Kernel, PriorType: Prior> GaussianProcess<KernelType, PriorType
                 &self.training_inputs.as_matrix(),
                 &self.kernel,
                 self.noise,
+                self.cholesky_epsilon,
             );
 
             if !continue_search {
@@ -244,6 +245,7 @@ impl<KernelType: Kernel, PriorType: Prior> GaussianProcess<KernelType, PriorType
                 &self.training_inputs.as_matrix(),
                 &self.kernel,
                 self.noise,
+                self.cholesky_epsilon,
             );
 
             if !continue_search {
